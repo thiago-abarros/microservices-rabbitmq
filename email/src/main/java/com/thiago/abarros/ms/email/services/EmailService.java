@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EmailService {
+
   final EmailRepository emailRepository;
   final JavaMailSender emailSender;
 
