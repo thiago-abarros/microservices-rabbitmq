@@ -33,6 +33,11 @@ spec:
                 configMapKeyRef:
                   name: user-config
                   key: SPRING_RABBITMQ_ADDRESS
+            - name: API_SECURITY_TOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: user-secrets
+                  key: API_SECURITY_TOKEN_SECRET
 ---
 apiVersion: v1
 kind: Service

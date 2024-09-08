@@ -1,13 +1,14 @@
 package com.thiago.abarros.ms.user.producers;
 
 import com.thiago.abarros.ms.user.dtos.EmailDTO;
-import com.thiago.abarros.ms.user.models.UserModel;
+import com.thiago.abarros.ms.user.models.User;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UserProducer {
+
   final RabbitTemplate rabbitTemplate;
 
   public UserProducer(RabbitTemplate rabbitTemplate) {
@@ -17,12 +18,12 @@ public class UserProducer {
   @Value(value = "${broker.queue.email.name}")
   private String routingKey;
 
-  public void publishMessageEmail(UserModel userModel) {
+  public void publishMessageEmail(User user) {
     var emailDTO = new EmailDTO(
-        userModel.getUserId(),
-        userModel.getEmail(),
+        user.getUserId(),
+        user.getEmail(),
         "Cadastro de Usuário",
-        "Seja bem-vindo(a) " + userModel.getName() + ", seu cadastro foi realizado com sucesso!"
+        "Seja bem-vindo(a) " + user.getName() + ", seu cadastro foi realizado com sucesso!"
     );
     rabbitTemplate.convertAndSend("", routingKey, emailDTO);
   }

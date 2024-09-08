@@ -10,10 +10,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "TB_USERS")
-public class UserModel implements Serializable {
+public class User implements Serializable {
+
   private static final long serialVersionUID = 1L;
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.UUID)
   private UUID userId;
   private String name;
   private String email;
