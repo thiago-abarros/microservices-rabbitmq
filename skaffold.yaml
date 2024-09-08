@@ -1,0 +1,23 @@
+apiVersion: skaffold/v2beta26
+kind: Config
+metadata:
+  name: microservices
+build:
+  artifacts:
+    - image: email-service
+      context: .
+      docker:
+        dockerfile: Dockerfile.email
+    - image: user-service
+      context: .
+      docker:
+        dockerfile: Dockerfile.user
+deploy:
+  kubectl:
+    manifests:
+      - k8s/email-deployment.yaml
+      - k8s/email-configmap.yaml
+      - k8s/email-secrets.yaml
+      - k8s/user-deployment.yaml
+      - k8s/user-configmap.yaml
+      - k8s/user-secrets.yaml
