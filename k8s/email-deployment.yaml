@@ -36,12 +36,12 @@ spec:
             - name: MAIL_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: mail-credentials
+                  name: email-secrets
                   key: MAIL_USERNAME
             - name: MAIL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mail-credentials
+                  name: email-secrets
                   key: MAIL_PASSWORD
 ---
 apiVersion: v1
