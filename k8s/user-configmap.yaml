@@ -4,5 +4,4 @@ metadata:
   name: user-config
 data:
   SERVER_PORT: "8081"
-  DB_URL: YOUR_DB_URL
   SPRING_RABBITMQ_ADDRESS: YOUR_RABBITMQ_ADDRESS
