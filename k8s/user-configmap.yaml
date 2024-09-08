@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: user-config
 data:
-  SERVER_PORT: "8081"
+  SERVER_PORT_USER: "8081"
   SPRING_RABBITMQ_ADDRESS: YOUR_RABBITMQ_ADDRESS
