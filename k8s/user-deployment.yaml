@@ -18,11 +18,11 @@ spec:
           ports:
             - containerPort: 8081
           env:
-            - name: SERVER_PORT
+            - name: SERVER_PORT_USER
               valueFrom:
                 configMapKeyRef:
                   name: user-config
-                  key: SERVER_PORT
+                  key: SERVER_PORT_USER
             - name: DB_URL
               valueFrom:
                 secretKeyRef:

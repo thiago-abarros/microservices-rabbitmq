@@ -18,11 +18,11 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: SERVER_PORT
+            - name: SERVER_PORT_EMAIL
               valueFrom:
                 configMapKeyRef:
                   name: email-config
-                  key: SERVER_PORT
+                  key: SERVER_PORT_EMAIL
             - name: DB_URL
               valueFrom:
                 secretKeyRef:
