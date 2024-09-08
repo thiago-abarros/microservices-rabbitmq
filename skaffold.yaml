@@ -5,13 +5,13 @@ metadata:
 build:
   artifacts:
     - image: email-service
-      context: .
+      context: ./email
       docker:
-        dockerfile: Dockerfile.email
+        dockerfile: Dockerfile
     - image: user-service
-      context: .
+      context: ./user
       docker:
-        dockerfile: Dockerfile.user
+        dockerfile: Dockerfile
 deploy:
   kubectl:
     manifests:
@@ -21,3 +21,14 @@ deploy:
       - k8s/user-deployment.yaml
       - k8s/user-configmap.yaml
       - k8s/user-secrets.yaml
+portForward:
+  - resourceType: service
+    resourceName: email-service
+    namespace: default
+    port: 8080
+    localPort: 8080
+  - resourceType: service
+    resourceName: user-service
+    namespace: default
+    port: 8081
+    localPort: 8081
