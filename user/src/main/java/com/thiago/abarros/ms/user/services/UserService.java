@@ -1,12 +1,14 @@
 package com.thiago.abarros.ms.user.services;
 
 import com.thiago.abarros.ms.user.dtos.LoginRequestDTO;
+import com.thiago.abarros.ms.user.dtos.RecoverRequestDTO;
 import com.thiago.abarros.ms.user.dtos.ResponseDTO;
 import com.thiago.abarros.ms.user.dtos.UserRecordDTO;
 import com.thiago.abarros.ms.user.infra.security.TokenService;
 import com.thiago.abarros.ms.user.models.User;
 import com.thiago.abarros.ms.user.producers.UserProducer;
 import com.thiago.abarros.ms.user.repository.UserRepository;
+import com.thiago.abarros.ms.user.utils.PasswordGenerator;
 import java.util.Optional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,7 +40,7 @@ public class UserService {
       newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
 
       this.userRepository.save(newUser);
-      this.userProducer.publishMessageEmail(newUser);
+      this.userProducer.publishRegisterMessageEmail(newUser);
       return newUser;
     }
     return null;
@@ -53,6 +55,24 @@ public class UserService {
       return new ResponseDTO(user.getName(), token);
     }
 
+    return null;
+  }
+
+  @Transactional
+  public ResponseDTO forgotPassword(RecoverRequestDTO recoverRequestDTO) {
+
+    User user = userRepository.findByEmail(recoverRequestDTO.email())
+        .orElseThrow(() -> new RuntimeException("User not found"));
+
+    if (user != null) {
+      var newPassword = PasswordGenerator.generateRandomPassword(14);
+
+      user.setPassword(passwordEncoder.encode(newPassword));
+      userRepository.save(user);
+      this.userProducer.publishRecoverPasswordMessageEmail(user, newPassword);
+
+      return new ResponseDTO(user.getName(), newPassword);
+    }
     return null;
   }
 }
