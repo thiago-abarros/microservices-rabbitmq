@@ -1,6 +1,7 @@
 package com.thiago.abarros.ms.user.controllers;
 
 import com.thiago.abarros.ms.user.dtos.LoginRequestDTO;
+import com.thiago.abarros.ms.user.dtos.RecoverRequestDTO;
 import com.thiago.abarros.ms.user.dtos.ResponseDTO;
 import com.thiago.abarros.ms.user.dtos.UserRecordDTO;
 import com.thiago.abarros.ms.user.infra.security.TokenService;
@@ -58,6 +59,13 @@ public class AuthController {
     return ResponseEntity
         .status(HttpStatus.BAD_REQUEST)
         .body(new ResponseDTO("User not found", null));
+  }
+
+  @PostMapping("/forgot-password")
+  public ResponseEntity<String> forgotPassword(@RequestBody @Valid RecoverRequestDTO recoverRequestDTO) {
+
+    userService.forgotPassword(recoverRequestDTO);
+    return ResponseEntity.status(HttpStatus.OK).body("Password recovered!");
   }
 
   @GetMapping("/")
