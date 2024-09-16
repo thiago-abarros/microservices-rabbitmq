@@ -1,5 +1,6 @@
 package com.thiago.abarros.ms.user.controllers;
 
+import com.thiago.abarros.ms.user.dtos.ChangePasswordRequestDTO;
 import com.thiago.abarros.ms.user.dtos.LoginRequestDTO;
 import com.thiago.abarros.ms.user.dtos.RecoverRequestDTO;
 import com.thiago.abarros.ms.user.dtos.ResponseDTO;
@@ -31,7 +32,7 @@ public class AuthController {
 
   @PostMapping("/register")
   public ResponseEntity<ResponseDTO> register(@RequestBody @Valid UserRecordDTO userRecordDTO) {
-    User user = userService.registerUser(userRecordDTO);
+    User user = this.userService.registerUser(userRecordDTO);
 
     if (user != null) {
       var token = tokenService.generateToken(user);
@@ -47,7 +48,7 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<ResponseDTO> login(@RequestBody @Valid LoginRequestDTO loginRequestDTO) {
-    ResponseDTO response = userService.loginUser(loginRequestDTO);
+    ResponseDTO response = this.userService.loginUser(loginRequestDTO);
 
     if (response != null) {
       return ResponseEntity
@@ -61,10 +62,17 @@ public class AuthController {
         .body(new ResponseDTO("User not found", null));
   }
 
+  @PostMapping("/change-password")
+  public ResponseEntity<String> changePassword(@RequestBody @Valid ChangePasswordRequestDTO changePasswordRequestDTO) {
+    this.userService.changePassword(changePasswordRequestDTO);
+
+    return ResponseEntity.status(HttpStatus.OK).body("Password changed!");
+  }
+
   @PostMapping("/forgot-password")
   public ResponseEntity<String> forgotPassword(@RequestBody @Valid RecoverRequestDTO recoverRequestDTO) {
 
-    userService.forgotPassword(recoverRequestDTO);
+    this.userService.forgotPassword(recoverRequestDTO);
     return ResponseEntity.status(HttpStatus.OK).body("Password recovered!");
   }
 
