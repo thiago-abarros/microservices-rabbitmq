@@ -29,3 +29,6 @@ k8s/user-secrets.yaml
 
 # enviroment files
 .env
+
+# IDE files
+/.idea
