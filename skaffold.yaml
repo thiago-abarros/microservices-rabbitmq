@@ -3,6 +3,9 @@ kind: Config
 metadata:
   name: microservices
 build:
+  local:
+    push: false
+    useBuildkit: true
   artifacts:
     - image: email-service
       context: ./email
