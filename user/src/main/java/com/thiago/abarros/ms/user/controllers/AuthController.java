@@ -1,85 +1,100 @@
 package com.thiago.abarros.ms.user.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.security.core.Authentication;
+
 import com.thiago.abarros.ms.user.dtos.ChangePasswordRequestDTO;
 import com.thiago.abarros.ms.user.dtos.LoginRequestDTO;
 import com.thiago.abarros.ms.user.dtos.RecoverRequestDTO;
 import com.thiago.abarros.ms.user.dtos.ResponseDTO;
 import com.thiago.abarros.ms.user.dtos.UserRecordDTO;
-import com.thiago.abarros.ms.user.infra.security.TokenService;
-import com.thiago.abarros.ms.user.models.User;
-import com.thiago.abarros.ms.user.services.UserService;
+
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+/**
+ * Interface for authentication-related operations.
+ */
 @RequestMapping("/auth")
-public class AuthController {
+@Tag(name = "Authentication", description = "Authentication-related operations")
+public interface AuthController {
 
-  final UserService userService;
-  final TokenService tokenService;
+    /**
+     * Handles user registration.
+     * 
+     * @param userRecordDTO User registration data transfer object.
+     * @return HTTP response with user registration result.
+     */
+    @Operation(summary = "Register a new user", description = "Creates a new user account")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request")
+    })
+    @PostMapping("/register")
+    ResponseEntity<ResponseDTO> register(@RequestBody @Valid UserRecordDTO userRecordDTO);
 
-  public AuthController(UserService userService, TokenService tokenService) {
-    this.userService = userService;
-    this.tokenService = tokenService;
-  }
+    /**
+     * Handles user login.
+     * 
+     * @param loginRequestDTO User login data transfer object.
+     * @return HTTP response with user login result.
+     */
+    @Operation(summary = "Login to an existing user account", description = "Authenticates a user and returns a token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User logged in successfully"),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
+    @PostMapping("/login")
+    ResponseEntity<ResponseDTO> login(@RequestBody @Valid LoginRequestDTO loginRequestDTO);
 
-  @PostMapping("/register")
-  public ResponseEntity<ResponseDTO> register(@RequestBody @Valid UserRecordDTO userRecordDTO) {
-    User user = this.userService.registerUser(userRecordDTO);
+    /**
+     * Handles password change.
+     * 
+     * @param changePasswordRequestDTO Password change data transfer object.
+     * @return HTTP response with password change result.
+     */
+    @Operation(summary = "Change the password of an existing user account", description = "Updates the password of a user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Password changed successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request")
+    })
+    @PutMapping("/change-password")
+    ResponseEntity<String> changePassword(@RequestBody @Valid ChangePasswordRequestDTO changePasswordRequestDTO);
 
-    if (user != null) {
-      var token = tokenService.generateToken(user);
+    /**
+     * Handles password recovery.
+     * 
+     * @param recoverRequestDTO Password recovery data transfer object.
+     * @return HTTP response with password recovery result.
+     */
+    @Operation(summary = "Recover the password of an existing user account", description = "Sends a password recovery email to the user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Password recovery email sent successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request")
+    })
+    @PostMapping("/forgot-password")
+    ResponseEntity<String> forgotPassword(@RequestBody @Valid RecoverRequestDTO recoverRequestDTO);
 
-      return ResponseEntity
-          .status(HttpStatus.CREATED)
-          .body(new ResponseDTO("User " + user.getName() + " created!", token));
-    }
-    return ResponseEntity
-        .status(HttpStatus.BAD_REQUEST)
-        .body(new ResponseDTO("User already exists", null));
-  }
-
-  @PostMapping("/login")
-  public ResponseEntity<ResponseDTO> login(@RequestBody @Valid LoginRequestDTO loginRequestDTO) {
-    ResponseDTO response = this.userService.loginUser(loginRequestDTO);
-
-    if (response != null) {
-      return ResponseEntity
-          .status(HttpStatus.OK)
-          .body(new ResponseDTO(
-              "User " + response.name() + " logged!",
-              response.token()));
-    }
-    return ResponseEntity
-        .status(HttpStatus.BAD_REQUEST)
-        .body(new ResponseDTO("User not found", null));
-  }
-
-  @PostMapping("/change-password")
-  public ResponseEntity<String> changePassword(@RequestBody @Valid ChangePasswordRequestDTO changePasswordRequestDTO) {
-    this.userService.changePassword(changePasswordRequestDTO);
-
-    return ResponseEntity.status(HttpStatus.OK).body("Password changed!");
-  }
-
-  @PostMapping("/forgot-password")
-  public ResponseEntity<String> forgotPassword(@RequestBody @Valid RecoverRequestDTO recoverRequestDTO) {
-
-    this.userService.forgotPassword(recoverRequestDTO);
-    return ResponseEntity.status(HttpStatus.OK).body("Password recovered!");
-  }
-
-  @GetMapping("/")
-  public ResponseEntity<String> authTest(Authentication authentication) {
-
-    return ResponseEntity.status(HttpStatus.OK)
-        .body("User Authenticated " + authentication.getDetails());
-  }
+    /**
+     * Tests user authentication.
+     * 
+     * @param authentication User authentication object.
+     * @return HTTP response with authentication result.
+     */
+    @Operation(summary = "Test user authentication", description = "Verifies the authentication of a user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User authenticated successfully"),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
+    @GetMapping("/test-auth")
+    ResponseEntity<String> authTest(@Parameter(hidden = true) Authentication authentication);
 }
