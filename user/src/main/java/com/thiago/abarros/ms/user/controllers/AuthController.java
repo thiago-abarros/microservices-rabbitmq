@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,15 +58,18 @@ public interface AuthController {
     ResponseEntity<ResponseDTO> login(@RequestBody @Valid LoginRequestDTO loginRequestDTO);
 
     /**
-     * Handles password change.
+     * Handles password change. This route requires authentication.
      * 
      * @param changePasswordRequestDTO Password change data transfer object.
      * @return HTTP response with password change result.
      */
-    @Operation(summary = "Change the password of an existing user account", description = "Updates the password of a user")
+    @Operation(summary = "Change the password of an existing user account", 
+               description = "Updates the password of a user",
+               security = { @SecurityRequirement(name = "bearerAuth") })
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Password changed successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request")
+        @ApiResponse(responseCode = "400", description = "Invalid request"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @PutMapping("/change-password")
     ResponseEntity<String> changePassword(@RequestBody @Valid ChangePasswordRequestDTO changePasswordRequestDTO);
@@ -85,15 +89,17 @@ public interface AuthController {
     ResponseEntity<String> forgotPassword(@RequestBody @Valid RecoverRequestDTO recoverRequestDTO);
 
     /**
-     * Tests user authentication.
+     * Tests user authentication. This route requires authentication.
      * 
      * @param authentication User authentication object.
      * @return HTTP response with authentication result.
      */
-    @Operation(summary = "Test user authentication", description = "Verifies the authentication of a user")
+    @Operation(summary = "Test user authentication", 
+               description = "Verifies the authentication of a user",
+               security = { @SecurityRequirement(name = "bearerAuth") })
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User authenticated successfully"),
-        @ApiResponse(responseCode = "401", description = "Invalid credentials")
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @GetMapping("/test-auth")
     ResponseEntity<String> authTest(@Parameter(hidden = true) Authentication authentication);
