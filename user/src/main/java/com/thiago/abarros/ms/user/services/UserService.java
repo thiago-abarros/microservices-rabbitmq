@@ -1,6 +1,5 @@
 package com.thiago.abarros.ms.user.services;
 
-import com.rabbitmq.client.RpcClient.Response;
 import com.thiago.abarros.ms.user.dtos.ChangePasswordRequestDTO;
 import com.thiago.abarros.ms.user.dtos.LoginRequestDTO;
 import com.thiago.abarros.ms.user.dtos.RecoverRequestDTO;
@@ -37,7 +36,7 @@ public class UserService {
 
   @Transactional
   public User registerUser(UserRecordDTO userDTO) {
-    Optional<User> user = userRepository.findByEmail(userDTO.email());
+    Optional<User> user = this.userRepository.findByEmail(userDTO.email());
     if (user.isEmpty()) {
       User newUser = new User();
       BeanUtils.copyProperties(userDTO, newUser);
@@ -51,7 +50,7 @@ public class UserService {
   }
 
   public ResponseDTO loginUser(LoginRequestDTO loginRequest) {
-    User user = userRepository.findByEmail(loginRequest.email())
+    User user = this.userRepository.findByEmail(loginRequest.email())
         .orElseThrow(() -> new RuntimeException("User not found"));
 
     if (passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
@@ -64,7 +63,7 @@ public class UserService {
 
   @Transactional
   public void changePassword(ChangePasswordRequestDTO changePasswordRequest) {
-    User user = userRepository.findByEmail(changePasswordRequest.email())
+    User user = this.userRepository.findByEmail(changePasswordRequest.email())
         .orElseThrow(() -> new RuntimeException("User not found"));
 
     if (passwordEncoder.matches(changePasswordRequest.oldPassword(), user.getPassword())) {
@@ -77,7 +76,7 @@ public class UserService {
 
   @Transactional
   public ResponseDTO forgotPassword(RecoverRequestDTO recoverRequestDTO) {
-    User user = userRepository.findByEmail(recoverRequestDTO.email())
+    User user = this.userRepository.findByEmail(recoverRequestDTO.email())
         .orElseThrow(() -> new RuntimeException("User not found"));
 
     if (user != null) {
