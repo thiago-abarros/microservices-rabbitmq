@@ -65,7 +65,7 @@ public interface AuthController {
      */
     @Operation(summary = "Change the password of an existing user account", 
                description = "Updates the password of a user",
-               security = { @SecurityRequirement(name = "bearerAuth") })
+               security = { @SecurityRequirement(name = "Bearer Auth") })
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Password changed successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid request"),
@@ -96,7 +96,7 @@ public interface AuthController {
      */
     @Operation(summary = "Test user authentication", 
                description = "Verifies the authentication of a user",
-               security = { @SecurityRequirement(name = "bearerAuth") })
+               security = { @SecurityRequirement(name = "Bearer Auth") })
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User authenticated successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized")
