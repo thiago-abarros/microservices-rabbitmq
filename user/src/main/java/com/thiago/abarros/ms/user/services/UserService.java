@@ -10,6 +10,9 @@ import com.thiago.abarros.ms.user.models.User;
 import com.thiago.abarros.ms.user.producers.UserProducer;
 import com.thiago.abarros.ms.user.repository.UserRepository;
 import com.thiago.abarros.ms.user.utils.PasswordGenerator;
+
+import lombok.RequiredArgsConstructor;
+
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -20,19 +23,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
   final UserRepository userRepository;
   final UserProducer userProducer;
   final TokenService tokenService;
   final PasswordEncoder passwordEncoder;
-
-  public UserService(UserRepository userRepository, UserProducer userProducer,
-      PasswordEncoder passwordEncoder, TokenService tokenService) {
-    this.userRepository = userRepository;
-    this.userProducer = userProducer;
-    this.tokenService = tokenService;
-    this.passwordEncoder = passwordEncoder;
-  }
 
   @Transactional
   public User registerUser(UserRecordDTO userDTO) {

@@ -14,18 +14,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
   final CustomUserDetailsService customUserDetailsService;
   final SecurityFilter securityFilter;
-
-  public SecurityConfig(CustomUserDetailsService customUserDetailsService,
-      SecurityFilter securityFilter) {
-    this.customUserDetailsService = customUserDetailsService;
-    this.securityFilter = securityFilter;
-  }
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
