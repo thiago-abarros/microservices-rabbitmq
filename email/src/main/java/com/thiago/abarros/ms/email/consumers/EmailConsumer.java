@@ -8,19 +8,28 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+/**
+ * This class provides a service for consuming email messages from a message queue.
+ * It encapsulates the logic for preparing and sending email messages.
+ */
 @Component
 public class EmailConsumer {
 
-  final EmailService emailService;
+    final EmailService emailService;
 
-  public EmailConsumer(EmailService emailService) {
-    this.emailService = emailService;
-  }
+    public EmailConsumer(EmailService emailService) {
+        this.emailService = emailService;
+    }
 
-  @RabbitListener(queues = "${broker.queue.email.name}")
-  public void listenEmailQueue(@Payload EmailRecordDTO emailRecordDTO) {
-    var emailModel = new EmailModel();
-    BeanUtils.copyProperties(emailRecordDTO, emailModel);
-    emailService.sendEmail(emailModel);
-  }
+    /**
+     * Listens to the email queue and processes incoming email messages.
+     *
+     * @param emailRecordDTO the email record DTO containing the email data
+     */
+    @RabbitListener(queues = "${broker.queue.email.name}")
+    public void listenEmailQueue(@Payload EmailRecordDTO emailRecordDTO) {
+        var emailModel = new EmailModel();
+        BeanUtils.copyProperties(emailRecordDTO, emailModel);
+        emailService.sendEmail(emailModel);
+    }
 }
