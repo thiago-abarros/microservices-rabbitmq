@@ -104,7 +104,6 @@ public class UserServiceImpl implements UserService {
             log.info("Password updated successfully for user {}", user.getName());
             this.userProducer.publishRecoverPasswordMessageEmail(user, newPassword);
             log.info("Recover password message sent to user {}", user.getName());
-            // TODO: health check no microserviço de email.
             this.schedulePasswordRevert(user, oldPassword, newPassword);
             log.info("Scheduled password revert for user {}", user.getName());
 
@@ -115,7 +114,7 @@ public class UserServiceImpl implements UserService {
 
     private void schedulePasswordRevert(User user, String oldPassword, String newPassword) {
         log.info("Scheduling password revert for user {}", user.getName());
-        long expirationTimeMillis = 10; // 10 minutes expiration time
+        long expirationTimeMillis = 20; // 20 minutes expiration time
 
         Executors.newSingleThreadScheduledExecutor().schedule(() -> {
             log.info("Reverting password for user {}", user.getName());
