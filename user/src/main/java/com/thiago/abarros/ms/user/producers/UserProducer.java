@@ -61,8 +61,6 @@ public class UserProducer {
      * @param password the new password
      */
     public void publishRecoverPasswordMessageEmail(User user, String password) {
-        
-        final int priority = 10;
 
         var emailDTO = new RecoverPasswordDTO(
                 user.getUserId(),
@@ -71,7 +69,7 @@ public class UserProducer {
                 "Sua nova senha é: " + password,
                 password
         );
-        rabbitTemplate.convertAndSend("", routingKeyRecoverPassword, emailDTO, this.setMessagePriority(priority));
+        rabbitTemplate.convertAndSend("", routingKeyRecoverPassword, emailDTO);
     }
 
     private MessagePostProcessor setMessagePriority(int priority) {

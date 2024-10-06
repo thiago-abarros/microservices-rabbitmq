@@ -28,8 +28,8 @@ public class RabbitMQConfig {
     private String queueEmailRegister;
 
     /**
-     * Creates a durable queue for password recovery emails with a TTL (Time-to-Live) of 10 minutes, 
-     * a maximum priority of 10, and the quorum type for high availability.
+     * Creates a durable queue for password recovery emails with a TTL (Time-to-Live) of 10 minutes 
+     * and the quorum type for high availability.
      * 
      * TTL ensures that messages expire after 10 minutes.
      * The quorum queue type is chosen to ensure message availability in a distributed setup.
@@ -40,7 +40,6 @@ public class RabbitMQConfig {
     public Queue recoverPasswordQueue() {
         Map<String, Object> args = new HashMap<>();
         args.put("x-message-ttl", 600000); // TTL of 10 minutes (in milliseconds)
-        args.put("x-max-priority", 10); // Max priority
         args.put("x-queue-type", "quorum"); // Quorum type, high availability
         return new Queue(queueRecoverPassword, true, false, false, args);
     }
