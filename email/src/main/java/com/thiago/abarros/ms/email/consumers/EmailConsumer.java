@@ -1,6 +1,7 @@
 package com.thiago.abarros.ms.email.consumers;
 
 import com.thiago.abarros.ms.email.dtos.EmailRecordDTO;
+import com.thiago.abarros.ms.email.dtos.RecoverPasswordDTO;
 import com.thiago.abarros.ms.email.models.EmailModel;
 import com.thiago.abarros.ms.email.services.EmailService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -21,13 +22,15 @@ public class EmailConsumer {
         this.emailService = emailService;
     }
 
-    /**
-     * Listens to the email queue and processes incoming email messages.
-     *
-     * @param emailRecordDTO the email record DTO containing the email data
-     */
-    @RabbitListener(queues = "${broker.queue.email.name}")
-    public void listenEmailQueue(@Payload EmailRecordDTO emailRecordDTO) {
+    @RabbitListener(queues = "${broker.queue.recover.password}")
+    public void listenRecoverPasswordQueue(@Payload RecoverPasswordDTO emailRecordDTO) {
+        var emailModel = new EmailModel();
+        BeanUtils.copyProperties(emailRecordDTO, emailModel);
+        emailService.sendEmail(emailModel);
+    }
+
+    @RabbitListener(queues = "${broker.queue.register}")
+    public void listenRegisterQueue(@Payload EmailRecordDTO emailRecordDTO) {
         var emailModel = new EmailModel();
         BeanUtils.copyProperties(emailRecordDTO, emailModel);
         emailService.sendEmail(emailModel);
