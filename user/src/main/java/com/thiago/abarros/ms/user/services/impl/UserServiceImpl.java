@@ -45,10 +45,11 @@ public class UserServiceImpl implements UserService {
             log.info("Publishing register message to email queue");
             this.userProducer.publishRegisterMessageEmail(newUser);
             log.info("User registered successfully");
+            return newUser;
         } else {
             log.warn("User already exists with email {}", userDTO.email());
+            throw new RuntimeException("User already exists");
         }
-        return user.orElseThrow();
     }
 
     @Override
@@ -103,7 +104,7 @@ public class UserServiceImpl implements UserService {
             log.info("Password updated successfully for user {}", user.getName());
             this.userProducer.publishRecoverPasswordMessageEmail(user, newPassword);
             log.info("Recover password message sent to user {}", user.getName());
-
+            // TODO: health check no microserviço de email.
             this.schedulePasswordRevert(user, oldPassword, newPassword);
             log.info("Scheduled password revert for user {}", user.getName());
 
