@@ -32,12 +32,13 @@ jobs:
           docker buildx build \
             --file ${{ matrix.module }}/Dockerfile \
             --build-arg MODULE_NAME=${{ matrix.module }} \
-            --build-arg SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
+            --build-arg ${{ matrix.module == 'email' && 'EMAIL_PORT=SERVER_PORT_EMAIL' || 'USER_PORT=SERVER_PORT_USER' }}=${{ matrix.module == 'email' && secrets.SERVER_PORT_EMAIL || secrets.SERVER_PORT_USER }} \
             --tag ${{ matrix.module }}:ci \
             --cache-from=type=inline \
             --cache-to=type=inline \
             --load \
-            ${{ matrix.module }}
+            --build-context ${{ matrix.module }} \
+            --build-env SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}
 
       - name: Verificar segredos
         run: |
