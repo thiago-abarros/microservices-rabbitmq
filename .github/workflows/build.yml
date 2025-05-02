@@ -22,15 +22,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build & Sonar — ${{ matrix.module }}
+      - name: Build, Test & Sonar — ${{ matrix.module }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           docker buildx build \
             --file ${{ matrix.module }}/Dockerfile \
-            --build-arg SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
             --build-arg MODULE_NAME=${{ matrix.module }} \
-            --tag registry.example.com/${{ matrix.module }}:ci \
+            --build-arg SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
+            --tag ${ matrix.module }:ci \
             --cache-from=type=inline \
             --cache-to=type=inline \
             --load \
