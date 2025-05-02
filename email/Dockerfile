@@ -22,6 +22,12 @@ WORKDIR /app
 # Copy the built JAR file from the build stage
 COPY --from=build /app/target/*.jar ./app.jar
 
+RUN mvn -B verify \
+      org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+      -Dsonar.projectKey=thiago-abarros_email \
+      -Dsonar.host.url=https://sonarcloud.io \
+      -Dsonar.login=${SONAR_TOKEN}
+      
 # Expose the port the application runs on
 EXPOSE ${SERVER_PORT_EMAIL}
 
