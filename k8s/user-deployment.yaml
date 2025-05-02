@@ -38,6 +38,11 @@ spec:
                 secretKeyRef:
                   name: user-secrets
                   key: API_SECURITY_TOKEN_SECRET
+            - name: SONAR_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: user-config
+                  key: SONAR_TOKEN
 ---
 apiVersion: v1
 kind: Service

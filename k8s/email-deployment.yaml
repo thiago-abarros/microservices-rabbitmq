@@ -43,6 +43,11 @@ spec:
                 secretKeyRef:
                   name: email-secrets
                   key: MAIL_PASSWORD
+            - name: SONAR_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: email-config
+                  key: SONAR_TOKEN
 ---
 apiVersion: v1
 kind: Service
