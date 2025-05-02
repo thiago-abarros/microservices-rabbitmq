@@ -7,7 +7,8 @@ on:
     types: [ opened, synchronize, reopened ]
 
 jobs:
-  build-and-sonar:
+  ci-cd:
+    name: Build, Test, Sonar, and Deploy
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -38,23 +39,27 @@ jobs:
             --load \
             ${{ matrix.module }}
 
-  deploy:
-    name: Deploy to Kind
-    needs: build-and-sonar
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Verificar segredos
+        run: |
+          if [ -z "${{ secrets.DB_URL }}" ]; then echo "EMAIL_DB_URL não definido"; exit 1; fi
+          if [ -z "${{ secrets.MAIL_USERNAME }}" ]; then echo "EMAIL_MAIL_USERNAME não definido"; exit 1; fi
+          if [ -z "${{ secrets.MAIL_PASSWORD }}" ]; then echo "EMAIL_MAIL_PASSWORD não definido"; exit 1; fi
+          if [ -z "${{ secrets.DB_URL }}" ]; then echo "USER_DB_URL não definido"; exit 1; fi
+          if [ -z "${{ secrets.API_SECURITY_TOKEN_SECRET }}" ]; then echo "USER_API_SECURITY_TOKEN_SECRET não definido"; exit 1; fi
 
-      # 1) Instala e cria Kind
       - name: Install kind
         run: |
           curl -Lo kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 \
           && chmod +x kind && sudo mv kind /usr/local/bin/
+
       - name: Create kind cluster
         run: kind create cluster --name ci-test --wait 5m
 
-      # 2) Gera ConfigMaps dinamicamente
+      - name: Load images to Kind
+        run: |
+          kind load docker-image email:ci --name ci-test
+          kind load docker-image user:ci --name ci-test
+
       - name: Gerar email-configmap.yaml
         run: |
           cat <<EOF > k8s/email-configmap.yaml
@@ -65,7 +70,6 @@ jobs:
           data:
             SERVER_PORT_EMAIL: "${{ secrets.SERVER_PORT_EMAIL }}"
             SPRING_RABBITMQ_ADDRESS: "${{ secrets.RABBITMQ_URL }}"
-            SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
           EOF
 
       - name: Gerar user-configmap.yaml
@@ -78,10 +82,20 @@ jobs:
           data:
             SERVER_PORT_USER: "${{ secrets.SERVER_PORT_USER }}"
             SPRING_RABBITMQ_ADDRESS: "${{ secrets.RABBITMQ_URL }}"
-            SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
           EOF
 
-      # 3) Gera Secrets dinamicamente
+      - name: Gerar sonar-secret.yaml
+        run: |
+          cat <<EOF > k8s/sonar-secret.yaml
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: sonar-secret
+          type: Opaque
+          data:
+            SONAR_TOKEN: $(echo -n "${{ secrets.SONAR_TOKEN }}" | base64)
+          EOF
+
       - name: Gerar email-secrets.yaml
         run: |
           cat <<EOF > k8s/email-secrets.yaml
@@ -91,9 +105,9 @@ jobs:
             name: email-secrets
           type: Opaque
           data:
-            DB_URL: ${{ secrets.DB_URL }}
-            MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-            MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+            DB_URL: $(echo -n "${{ secrets.DB_URL }}" | base64)
+            MAIL_USERNAME: $(echo -n "${{ secrets.MAIL_USERNAME }}" | base64)
+            MAIL_PASSWORD: $(echo -n "${{ secrets.MAIL_PASSWORD }}" | base64)
           EOF
 
       - name: Gerar user-secrets.yaml
@@ -105,21 +119,18 @@ jobs:
             name: user-secrets
           type: Opaque
           data:
-            DB_URL: ${{ secrets.DB_URL }}
-            API_SECURITY_TOKEN_SECRET: ${{ secrets.API_SECURITY_TOKEN_SECRET }}
+            DB_URL: $(echo -n "${{ secrets.DB_URL }}" | base64)
+            API_SECURITY_TOKEN_SECRET: $(echo -n "${{ secrets.API_SECURITY_TOKEN_SECRET }}" | base64)
           EOF
 
-      # 4) Instala Skaffold
       - name: Install Skaffold
         uses: grafana/skaffold-action@v1
         with:
           skaffold-version: 'latest'
 
-      # 5) Deploy com Skaffold
-      - name: skaffold run
+      - name: Skaffold run
         run: skaffold run --filename skaffold.yaml
 
-      # 6) Cleanup
       - name: Delete kind cluster
         if: always()
         run: kind delete cluster --name ci-test
