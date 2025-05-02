@@ -124,9 +124,10 @@ jobs:
           EOF
 
       - name: Install Skaffold
-        uses: grafana/skaffold-action@v1
-        with:
-          skaffold-version: 'latest'
+        run: |
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 \
+          && chmod +x skaffold \
+          && sudo mv skaffold /usr/local/bin/
 
       - name: Skaffold run
         run: skaffold run --filename skaffold.yaml
