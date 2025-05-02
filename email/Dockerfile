@@ -18,7 +18,7 @@ RUN mvn clean package -DskipTests
 
 RUN mvn -B verify \
       org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-      -Dsonar.projectKey=thiago-abarros_email \
+      -Dsonar.projectKey=thiago-abarros_microservices-rabbitmq_${MODULE_NAME} \
       -Dsonar.host.url=https://sonarcloud.io \
       -Dsonar.login=${SONAR_TOKEN}
 
