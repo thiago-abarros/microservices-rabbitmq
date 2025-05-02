@@ -25,9 +25,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build, Test & Sonar — ${{ matrix.module }}
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Build — ${{ matrix.module }}
         run: |
           docker buildx build \
             --file ${{ matrix.module }}/Dockerfile \
@@ -37,8 +35,17 @@ jobs:
             --cache-from=type=inline \
             --cache-to=type=inline \
             --load \
-            --build-context ${{ matrix.module }} \
-            --build-env SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}
+            ${{ matrix.module }}
+
+      - name: Run SonarQube Analysis — ${{ matrix.module }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          cd ${{ matrix.module }}
+          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=thiago-abarros_microservices-rabbitmq_${{ matrix.module }} \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       - name: Verificar segredos
         run: |
