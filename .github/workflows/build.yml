@@ -39,12 +39,10 @@ jobs:
         run: |
           docker build \
             --file ${{ matrix.module }}/Dockerfile \
-            --build-arg SONAR_TOKEN=${SONAR_TOKEN} \
-            --cache-from=type=local,src=/tmp/.buildx-cache \
-            --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
-            --tag my-registry/${{ matrix.module }}:latest \
+            --build-arg SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
+            --tag micro/${{ matrix.module }}:latest \
             ${{ matrix.module }}
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
 
   deploy:
     name: Deploy to Kind
