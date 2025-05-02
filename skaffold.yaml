@@ -7,11 +7,11 @@ build:
     push: false
     useBuildkit: true
   artifacts:
-    - image: email-service
+    - image: email
       context: ./email
       docker:
         dockerfile: Dockerfile
-    - image: user-service
+    - image: user
       context: ./user
       docker:
         dockerfile: Dockerfile
@@ -24,6 +24,7 @@ deploy:
       - k8s/user-deployment.yaml
       - k8s/user-configmap.yaml
       - k8s/user-secrets.yaml
+      - k8s/sonar-secret.yaml
 portForward:
   - resourceType: service
     resourceName: email-service

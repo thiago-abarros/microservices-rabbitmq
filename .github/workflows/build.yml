@@ -25,12 +25,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Debug Secrets and Ports
+        run: |
+          echo "SERVER_PORT_EMAIL=${{ secrets.SERVER_PORT_EMAIL }}"
+          echo "SERVER_PORT_USER=${{ secrets.SERVER_PORT_USER }}"
+          echo "DB_URL=${{ secrets.DB_URL && 'set' || 'unset' }}"
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME && 'set' || 'unset' }}"
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD && 'set' || 'unset' }}"
+          echo "API_SECURITY_TOKEN_SECRET=${{ secrets.API_SECURITY_TOKEN_SECRET && 'set' || 'unset' }}"
+          echo "SONAR_TOKEN=${{ secrets.SONAR_TOKEN && 'set' || 'unset' }}"
+          echo "RABBITMQ_URL=${{ secrets.RABBITMQ_URL && 'set' || 'unset' }}"
+
       - name: Build — ${{ matrix.module }}
         run: |
           docker buildx build \
             --file ${{ matrix.module }}/Dockerfile \
             --build-arg MODULE_NAME=${{ matrix.module }} \
-            --build-arg ${{ matrix.module == 'email' && 'EMAIL_PORT=SERVER_PORT_EMAIL' || 'USER_PORT=SERVER_PORT_USER' }}=${{ matrix.module == 'email' && secrets.SERVER_PORT_EMAIL || secrets.SERVER_PORT_USER }} \
+            --build-arg PORT=${{ matrix.module == 'email' && secrets.SERVER_PORT_EMAIL || secrets.SERVER_PORT_USER }} \
             --tag ${{ matrix.module }}:ci \
             --cache-from=type=inline \
             --cache-to=type=inline \
@@ -49,11 +60,14 @@ jobs:
 
       - name: Verificar segredos
         run: |
-          if [ -z "${{ secrets.DB_URL }}" ]; then echo "EMAIL_DB_URL não definido"; exit 1; fi
-          if [ -z "${{ secrets.MAIL_USERNAME }}" ]; then echo "EMAIL_MAIL_USERNAME não definido"; exit 1; fi
-          if [ -z "${{ secrets.MAIL_PASSWORD }}" ]; then echo "EMAIL_MAIL_PASSWORD não definido"; exit 1; fi
-          if [ -z "${{ secrets.DB_URL }}" ]; then echo "USER_DB_URL não definido"; exit 1; fi
-          if [ -z "${{ secrets.API_SECURITY_TOKEN_SECRET }}" ]; then echo "USER_API_SECURITY_TOKEN_SECRET não definido"; exit 1; fi
+          if [ -z "${{ secrets.DB_URL }}" ]; then echo "DB_URL não definido"; exit 1; fi
+          if [ -z "${{ secrets.MAIL_USERNAME }}" ]; then echo "MAIL_USERNAME não definido"; exit 1; fi
+          if [ -z "${{ secrets.MAIL_PASSWORD }}" ]; then echo "MAIL_PASSWORD não definido"; exit 1; fi
+          if [ -z "${{ secrets.API_SECURITY_TOKEN_SECRET }}" ]; then echo "API_SECURITY_TOKEN_SECRET não definido"; exit 1; fi
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then echo "SONAR_TOKEN não definido"; exit 1; fi
+          if [ -z "${{ secrets.SERVER_PORT_EMAIL }}" ]; then echo "SERVER_PORT_EMAIL não definido"; exit 1; fi
+          if [ -z "${{ secrets.SERVER_PORT_USER }}" ]; then echo "SERVER_PORT_USER não definido"; exit 1; fi
+          if [ -z "${{ secrets.RABBITMQ_URL }}" ]; then echo "RABBITMQ_URL não definido"; exit 1; fi
 
       - name: Install kind
         run: |
