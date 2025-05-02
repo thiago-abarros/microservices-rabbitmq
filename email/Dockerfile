@@ -15,13 +15,6 @@ COPY src ./src
 # Build the application, skipping unit tests
 RUN mvn clean package -DskipTests
 
-# Run SonarQube analysis, skipping integration tests
-RUN mvn -B verify -DskipITs=true \
-      org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-      -Dsonar.projectKey=thiago-abarros_microservices-rabbitmq_${MODULE_NAME} \
-      -Dsonar.host.url=https://sonarcloud.io \
-      -Dsonar.login=${SONAR_TOKEN}
-
 # Use a smaller base image for runtime
 FROM openjdk:17-jdk-alpine
 
