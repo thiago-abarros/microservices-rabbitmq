@@ -1,36 +1,125 @@
-name: SonarQube
+name: CI / CD
+
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
+
 jobs:
-  build:
-    name: Build and analyze
+  build-and-sonar:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [ email, user ]
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'zulu' # Alternative distribution options are available.
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: Build and analyze
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build, Test & Sonar — ${{ matrix.module }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=thiago-abarros_microservices-rabbitmq_email
+        run: |
+          docker buildx build \
+            --file ${{ matrix.module }}/Dockerfile \
+            --build-arg MODULE_NAME=${{ matrix.module }} \
+            --build-arg SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
+            --tag ${{ matrix.module }}:ci \
+            --cache-from=type=inline \
+            --cache-to=type=inline \
+            --load \
+            ${{ matrix.module }}
+
+  deploy:
+    name: Deploy to Kind
+    needs: build-and-sonar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 1) Instala e cria Kind
+      - name: Install kind
+        run: |
+          curl -Lo kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64 \
+          && chmod +x kind && sudo mv kind /usr/local/bin/
+      - name: Create kind cluster
+        run: kind create cluster --name ci-test --wait 5m
+
+      # 2) Gera ConfigMaps dinamicamente
+      - name: Gerar email-configmap.yaml
+        run: |
+          cat <<EOF > k8s/email-configmap.yaml
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: email-config
+          data:
+            SERVER_PORT_EMAIL: "${{ secrets.SERVER_PORT_EMAIL }}"
+            SPRING_RABBITMQ_ADDRESS: "${{ secrets.RABBITMQ_URL }}"
+            SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
+          EOF
+
+      - name: Gerar user-configmap.yaml
+        run: |
+          cat <<EOF > k8s/user-configmap.yaml
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: user-config
+          data:
+            SERVER_PORT_USER: "${{ secrets.SERVER_PORT_USER }}"
+            SPRING_RABBITMQ_ADDRESS: "${{ secrets.RABBITMQ_URL }}"
+            SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
+          EOF
+
+      # 3) Gera Secrets dinamicamente
+      - name: Gerar email-secrets.yaml
+        run: |
+          cat <<EOF > k8s/email-secrets.yaml
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: email-secrets
+          type: Opaque
+          data:
+            DB_URL: ${{ secrets.DB_URL }}
+            MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+            MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          EOF
+
+      - name: Gerar user-secrets.yaml
+        run: |
+          cat <<EOF > k8s/user-secrets.yaml
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: user-secrets
+          type: Opaque
+          data:
+            DB_URL: ${{ secrets.DB_URL }}
+            API_SECURITY_TOKEN_SECRET: ${{ secrets.API_SECURITY_TOKEN_SECRET }}
+          EOF
+
+      # 4) Instala Skaffold
+      - name: Install Skaffold
+        uses: grafana/skaffold-action@v1
+        with:
+          skaffold-version: 'latest'
+
+      # 5) Deploy com Skaffold
+      - name: skaffold run
+        run: skaffold run --filename skaffold.yaml
+
+      # 6) Cleanup
+      - name: Delete kind cluster
+        if: always()
+        run: kind delete cluster --name ci-test
