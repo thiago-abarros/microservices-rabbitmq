@@ -8,24 +8,13 @@ on:
 
 jobs:
   build-and-sonar:
-    name: Build, Test & Sonar in Docker — ${{ matrix.module }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         module: [ email, user ]
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      # Cache de camadas Docker (opcional)
-      - name: Set up Docker cache
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ matrix.module }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
+        with: { fetch-depth: 0 }
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -37,10 +26,14 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          docker build \
+          docker buildx build \
             --file ${{ matrix.module }}/Dockerfile \
             --build-arg SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
-            --tag micro/${{ matrix.module }}:latest \
+            --build-arg MODULE_NAME=${{ matrix.module }} \
+            --tag ${ matrix.module }:ci \
+            --cache-from=type=inline \
+            --cache-to=type=inline \
+            --load \
             ${{ matrix.module }}
 
 
