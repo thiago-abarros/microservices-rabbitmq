@@ -2,7 +2,7 @@
 FROM maven:3.8.4-openjdk-17-slim AS build
 
 ARG SONAR_TOKEN
-ENV SONAR_TOKEN=${SONAR_TOKEN}
+ARG MODULE_NAME
 
 # Set the working directory in the container
 WORKDIR /app
