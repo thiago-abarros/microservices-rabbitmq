@@ -68,10 +68,11 @@ jobs:
           metadata:
             name: email-config
           data:
-            SERVER_PORT_EMAIL: "8080"
+            SERVER_PORT_EMAIL: "${{ secrets.SERVER_PORT_EMAIL }}"
             SPRING_RABBITMQ_ADDRESS: "${{ secrets.RABBITMQ_URL }}"
+            SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
           EOF
-
+      
       - name: Gerar user-configmap.yaml
         run: |
           cat <<EOF > k8s/user-configmap.yaml
@@ -80,10 +81,11 @@ jobs:
           metadata:
             name: user-config
           data:
-            SERVER_PORT_USER: "8081"
+            SERVER_PORT_USER: "${{ secrets.SERVER_PORT_USER }}"
             SPRING_RABBITMQ_ADDRESS: "${{ secrets.RABBITMQ_URL }}"
+            SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
           EOF
-
+        
       # 3) Gera Secrets
       - name: Gerar email-secrets.yaml
         run: |
@@ -94,9 +96,9 @@ jobs:
             name: email-secrets
           type: Opaque
           data:
-            DB_URL: ${{ secrets.EMAIL_DB_URL }}
-            MAIL_USERNAME: ${{ secrets.EMAIL_MAIL_USERNAME }}
-            MAIL_PASSWORD: ${{ secrets.EMAIL_MAIL_PASSWORD }}
+            DB_URL: ${{ secrets.DB_URL }}
+            MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+            MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           EOF
 
       - name: Gerar user-secrets.yaml
@@ -108,8 +110,8 @@ jobs:
             name: user-secrets
           type: Opaque
           data:
-            DB_URL: ${{ secrets.USER_DB_URL }}
-            API_SECURITY_TOKEN_SECRET: ${{ secrets.USER_API_SECURITY_TOKEN_SECRET }}
+            DB_URL: ${{ secrets.DB_URL }}
+            API_SECURITY_TOKEN_SECRET: ${{ secrets.API_SECURITY_TOKEN_SECRET }}
           EOF
 
       # 4) Instala Skaffold
