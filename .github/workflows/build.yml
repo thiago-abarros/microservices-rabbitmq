@@ -30,12 +30,11 @@ jobs:
             --file ${{ matrix.module }}/Dockerfile \
             --build-arg SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} \
             --build-arg MODULE_NAME=${{ matrix.module }} \
-            --tag ${ matrix.module }:ci \
+            --tag registry.example.com/${{ matrix.module }}:ci \
             --cache-from=type=inline \
             --cache-to=type=inline \
             --load \
             ${{ matrix.module }}
-
 
   deploy:
     name: Deploy to Kind
