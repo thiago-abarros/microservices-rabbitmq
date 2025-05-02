@@ -1,3 +1,4 @@
+# k8s/user-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,7 +18,7 @@ spec:
           image: user:ci
           imagePullPolicy: Never
           ports:
-            - containerPort: 8081
+            - containerPort: ${{ secrets.SERVER_PORT_USER }}
           env:
             - name: SERVER_PORT_USER
               valueFrom:
@@ -54,5 +55,5 @@ spec:
     app: user
   ports:
     - protocol: TCP
-      port: 8081
-      targetPort: 8081
+      port: ${{ secrets.SERVER_PORT_USER }}
+      targetPort: ${{ secrets.SERVER_PORT_USER }}

@@ -1,3 +1,4 @@
+# k8s/email-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,7 +18,7 @@ spec:
           image: email:ci
           imagePullPolicy: Never
           ports:
-            - containerPort: 8080
+            - containerPort: ${{ secrets.SERVER_PORT_EMAIL }}
           env:
             - name: SERVER_PORT_EMAIL
               valueFrom:
@@ -59,5 +60,5 @@ spec:
     app: email
   ports:
     - protocol: TCP
-      port: 8080
-      targetPort: 8080
+      port: ${{ secrets.SERVER_PORT_EMAIL }}
+      targetPort: ${{ secrets.SERVER_PORT_EMAIL }}
